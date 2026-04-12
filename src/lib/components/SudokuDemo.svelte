@@ -12,6 +12,7 @@
 	let notesMode = $state(false);
 	let selected = $state<number | null>(null);
 	let ready = $state(false);
+	let solvedModalDismissed = $state(false);
 
 	type Snap = { values: number[]; notes: number[] };
 	let undoStack = $state<Snap[]>([]);
@@ -21,6 +22,24 @@
 	const solved = $derived(
 		values.length === 81 && values.every((v) => v > 0) && !conflicts.some(Boolean)
 	);
+
+	const digitCounts = $derived.by(() => {
+		const c = new Array<number>(10).fill(0);
+		for (const v of values) {
+			if (v >= 1 && v <= 9) c[v]++;
+		}
+		return c;
+	});
+
+	const showSolvedModal = $derived(solved && !solvedModalDismissed);
+
+	function digitSaturated(d: number): boolean {
+		return digitCounts[d] >= 9;
+	}
+
+	$effect(() => {
+		if (!solved) solvedModalDismissed = false;
+	});
 
 	function pushUndo(): void {
 		const snap: Snap = { values: values.slice(), notes: notes.slice() };
@@ -44,6 +63,7 @@
 		notes = new Array(81).fill(0);
 		selected = null;
 		undoStack = [];
+		solvedModalDismissed = false;
 	}
 
 	onMount(() => {
@@ -56,7 +76,7 @@
 	}
 
 	function applyDigit(d: number): void {
-		if (selected === null || givens[selected]) return;
+		if (selected === null || givens[selected] || digitSaturated(d)) return;
 		const i = selected;
 		pushUndo();
 		if (notesMode) {
@@ -136,7 +156,14 @@
 		];
 		return parts.filter(Boolean).join(' ');
 	}
+
+	function onWindowKeydown(e: KeyboardEvent): void {
+		if (e.key !== 'Escape') return;
+		if (solved && !solvedModalDismissed) solvedModalDismissed = true;
+	}
 </script>
+
+<svelte:window onkeydown={onWindowKeydown} />
 
 <div
 	class="mx-auto flex min-h-dvh max-w-md flex-col gap-4 bg-[#fafbfc] px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-[max(0.75rem,env(safe-area-inset-top))] text-[#2c3d4f] {!ready
@@ -170,15 +197,6 @@
 			New game
 		</button>
 	</header>
-
-	{#if solved}
-		<p
-			class="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-center text-sm font-medium text-emerald-900"
-			role="status"
-		>
-			Solved.
-		</p>
-	{/if}
 
 	<div class="mx-auto w-full max-w-[min(100%,400px)]">
 		<div class="aspect-square w-full overflow-hidden rounded-md border-2 border-[#5a6573] bg-white shadow-sm">
@@ -274,15 +292,57 @@
 		</button>
 	</div>
 
-	<div class="flex flex-nowrap items-end justify-between gap-1 px-0.5 pt-1">
+	<div class="flex flex-nowrap items-end justify-between gap-1 px-0.5 pt-1" role="group" aria-label="Enter digit">
 		{#each Array.from({ length: 9 }, (_, k) => k + 1) as digit (digit)}
+			{@const saturated = digitSaturated(digit)}
 			<button
 				type="button"
-				class="min-w-0 flex-1 pb-1 text-center text-[clamp(1.35rem,6.5vw,1.85rem)] font-bold leading-none text-[#2f6fde] active:opacity-70"
+				disabled={saturated}
+				class="min-w-0 flex-1 pb-1 text-center text-[clamp(1.35rem,6.5vw,1.85rem)] font-bold leading-none {saturated
+					? 'cursor-default text-[#b8c0cc]'
+					: 'text-[#2f6fde] active:opacity-70'}"
+				aria-label={saturated ? `${digit}, all placed` : `Enter ${digit}`}
 				onclick={() => applyDigit(digit)}
 			>
 				{digit}
 			</button>
 		{/each}
 	</div>
+
+	{#if showSolvedModal}
+		<div
+			class="fixed inset-0 z-50 flex items-end justify-center bg-black/45 p-4 pb-[max(1rem,env(safe-area-inset-bottom))] sm:items-center"
+			role="presentation"
+			onclick={(e) => {
+				if (e.target === e.currentTarget) solvedModalDismissed = true;
+			}}
+		>
+			<div
+				class="w-full max-w-sm rounded-2xl border border-[#d0d7e0] bg-white p-6 shadow-xl"
+				role="dialog"
+				aria-modal="true"
+				aria-labelledby="solved-title"
+				tabindex="-1"
+			>
+				<h2 id="solved-title" class="text-center text-xl font-semibold text-[#1e3a5f]">Puzzle solved</h2>
+				<p class="mt-2 text-center text-sm text-[#6b7788]">Start a new game?</p>
+				<div class="mt-6 flex flex-col gap-2">
+					<button
+						type="button"
+						class="w-full rounded-xl bg-[#2f6fde] py-3 text-sm font-semibold text-white active:opacity-90"
+						onclick={() => startGame()}
+					>
+						New game
+					</button>
+					<button
+						type="button"
+						class="w-full rounded-xl border border-[#d0d7e0] bg-[#fafbfc] py-3 text-sm font-medium text-[#2c3d4f] active:bg-[#eef1f4]"
+						onclick={() => (solvedModalDismissed = true)}
+					>
+						Not now
+					</button>
+				</div>
+			</div>
+		</div>
+	{/if}
 </div>
