@@ -5,21 +5,13 @@
 	import { hasNote, toggleNote, pruneNotes } from '$lib/sudoku/notes';
 	import type { Difficulty } from '$lib/sudoku/types';
 
-	const MONTH_KEY = 'sudoku-month-score';
-
 	let difficulty = $state<Difficulty>('medium');
-	let gameId = $state(0);
 	let givens = $state<boolean[]>(new Array(81).fill(false));
 	let values = $state<number[]>(new Array(81).fill(0));
 	let notes = $state<number[]>(new Array(81).fill(0));
 	let notesMode = $state(false);
 	let selected = $state<number | null>(null);
 	let ready = $state(false);
-
-	let seconds = $state(0);
-	let paused = $state(false);
-	let monthPoints = $state(0);
-	let pointsAwardedForGame = $state<number | null>(null);
 
 	type Snap = { values: number[]; notes: number[] };
 	let undoStack = $state<Snap[]>([]);
@@ -29,46 +21,6 @@
 	const solved = $derived(
 		values.length === 81 && values.every((v) => v > 0) && !conflicts.some(Boolean)
 	);
-	const timerRunning = $derived(ready && !paused && !solved);
-
-	const dateLabel = $derived.by(() => {
-		const d = new Date();
-		return d.toLocaleDateString(undefined, { day: 'numeric', month: 'short' }).toUpperCase();
-	});
-
-	const timeLabel = $derived(
-		`${String(Math.floor(seconds / 60)).padStart(2, '0')}:${String(seconds % 60).padStart(2, '0')}`
-	);
-
-	function currentYearMonth(): string {
-		const d = new Date();
-		return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
-	}
-
-	function loadMonthPoints(): number {
-		if (typeof localStorage === 'undefined') return 0;
-		const ym = currentYearMonth();
-		try {
-			const raw = localStorage.getItem(MONTH_KEY);
-			if (!raw) return 0;
-			const o = JSON.parse(raw) as { ym?: string; points?: number };
-			if (o.ym !== ym) return 0;
-			return o.points ?? 0;
-		} catch {
-			return 0;
-		}
-	}
-
-	function saveMonthPoints(points: number): void {
-		if (typeof localStorage === 'undefined') return;
-		localStorage.setItem(MONTH_KEY, JSON.stringify({ ym: currentYearMonth(), points }));
-		monthPoints = points;
-	}
-
-	function addMonthPoints(delta: number): void {
-		const next = Math.max(0, monthPoints + delta);
-		saveMonthPoints(next);
-	}
 
 	function pushUndo(): void {
 		const snap: Snap = { values: values.slice(), notes: notes.slice() };
@@ -78,7 +30,7 @@
 	}
 
 	function undo(): void {
-		if (undoStack.length === 0 || paused) return;
+		if (undoStack.length === 0) return;
 		const snap = undoStack[undoStack.length - 1];
 		undoStack = undoStack.slice(0, -1);
 		values = snap.values;
@@ -86,47 +38,25 @@
 	}
 
 	function startGame(): void {
-		gameId += 1;
 		const p = generatePuzzle(difficulty);
 		givens = p.givens;
 		values = p.values;
 		notes = new Array(81).fill(0);
 		selected = null;
 		undoStack = [];
-		seconds = 0;
-		paused = false;
-		pointsAwardedForGame = null;
 	}
 
 	onMount(() => {
-		monthPoints = loadMonthPoints();
 		startGame();
 		ready = true;
 	});
 
-	$effect(() => {
-		if (!timerRunning) return;
-		const id = setInterval(() => {
-			seconds += 1;
-		}, 1000);
-		return () => clearInterval(id);
-	});
-
-	$effect(() => {
-		if (solved && ready && pointsAwardedForGame !== gameId) {
-			pointsAwardedForGame = gameId;
-			const bonus = Math.max(500, 8000 - seconds * 3);
-			addMonthPoints(bonus);
-		}
-	});
-
 	function onCellTap(i: number): void {
-		if (paused) return;
 		selected = i;
 	}
 
 	function applyDigit(d: number): void {
-		if (paused || selected === null || givens[selected]) return;
+		if (selected === null || givens[selected]) return;
 		const i = selected;
 		pushUndo();
 		if (notesMode) {
@@ -136,7 +66,7 @@
 			}
 			const nextNotes = notes.slice();
 			nextNotes[i] = toggleNote(nextNotes[i], d);
-			notes = pruneNotes(values, nextNotes);
+			notes = nextNotes;
 			return;
 		}
 		const v = values.slice();
@@ -148,7 +78,7 @@
 	}
 
 	function eraseSelection(): void {
-		if (paused || selected === null || givens[selected]) return;
+		if (selected === null || givens[selected]) return;
 		const i = selected;
 		pushUndo();
 		if (notesMode) {
@@ -197,57 +127,39 @@
 		];
 		return parts.filter(Boolean).join(' ');
 	}
-
-	function formatPoints(n: number): string {
-		return n.toLocaleString(undefined, { maximumFractionDigits: 0 });
-	}
 </script>
 
 <div
-	class="mx-auto flex min-h-dvh max-w-md flex-col gap-5 bg-[#fafbfc] px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-[max(0.75rem,env(safe-area-inset-top))] text-[#2c3d4f] {!ready
+	class="mx-auto flex min-h-dvh max-w-md flex-col gap-4 bg-[#fafbfc] px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-[max(0.75rem,env(safe-area-inset-top))] text-[#2c3d4f] {!ready
 		? 'pointer-events-none opacity-50'
 		: ''}"
 	aria-busy={!ready}
 >
-	<!-- Top bar -->
-	<header class="grid grid-cols-3 items-start gap-2 text-[0.7rem] font-medium leading-tight text-[#6b7788]">
-		<div class="flex flex-col gap-0.5">
-			<span>Date</span>
-			<span class="text-[0.95rem] font-semibold tracking-wide text-[#1e3a5f]">{dateLabel}</span>
+	<header class="flex flex-wrap items-center justify-between gap-2">
+		<h1 class="text-lg font-semibold tracking-tight text-[#1e3a5f]">Sudoku</h1>
+		<div class="inline-flex rounded-full border border-[#d0d7e0] bg-white p-0.5 text-xs" role="group" aria-label="Difficulty">
+			{#each ['easy', 'medium', 'hard'] as d (d)}
+				<button
+					type="button"
+					class="rounded-full px-2.5 py-1 capitalize {difficulty === d
+						? 'bg-[#e8f1fb] font-semibold text-[#1e3a5f]'
+						: 'text-[#6b7788]'}"
+					onclick={() => {
+						difficulty = d as Difficulty;
+						startGame();
+					}}
+				>
+					{d}
+				</button>
+			{/each}
 		</div>
-		<div class="flex flex-col items-center gap-0.5 text-center">
-			<div class="flex items-center justify-center gap-1">
-				<svg class="h-4 w-4 text-[#c9a227]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
-					<path stroke-linecap="round" stroke-linejoin="round" d="M6 9H4.5A2.5 2.5 0 0 1 4 4.5M18 9h1.5a2.5 2.5 0 0 0 0-5H18M4 22h16M6 9v4a6 6 0 0 0 12 0V9M10 22V9m4 0v13" />
-				</svg>
-				<span>This month</span>
-			</div>
-			<span class="text-[0.95rem] font-semibold tabular-nums text-[#1e3a5f]"
-				>{formatPoints(monthPoints)}</span
-			>
-		</div>
-		<div class="flex flex-col items-end gap-1.5">
-			<div class="flex flex-col items-end gap-0.5">
-				<span>Time</span>
-				<span class="text-[0.95rem] font-semibold tabular-nums text-[#1e3a5f]">{timeLabel}</span>
-			</div>
-			<button
-				type="button"
-				class="flex h-9 w-9 items-center justify-center rounded-full border border-[#d0d7e0] bg-white shadow-sm active:scale-95"
-				aria-label={paused ? 'Resume' : 'Pause'}
-				onclick={() => (paused = !paused)}
-			>
-				{#if paused}
-					<svg class="h-4 w-4 text-[#1e3a5f]" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-						<path d="M8 5v14l11-7z" />
-					</svg>
-				{:else}
-					<svg class="h-4 w-4 text-[#1e3a5f]" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-						<path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z" />
-					</svg>
-				{/if}
-			</button>
-		</div>
+		<button
+			type="button"
+			class="text-sm font-semibold text-[#2f6fde] underline-offset-2 hover:underline"
+			onclick={() => startGame()}
+		>
+			New game
+		</button>
 	</header>
 
 	{#if solved}
@@ -255,11 +167,10 @@
 			class="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-center text-sm font-medium text-emerald-900"
 			role="status"
 		>
-			Solved — nice work.
+			Solved.
 		</p>
 	{/if}
 
-	<!-- Grid -->
 	<div class="mx-auto w-full max-w-[min(100%,400px)]">
 		<div class="aspect-square w-full overflow-hidden rounded-md border-2 border-[#5a6573] bg-white shadow-sm">
 			<div class="grid h-full w-full grid-cols-9 grid-rows-9">
@@ -295,12 +206,11 @@
 		</div>
 	</div>
 
-	<!-- Icon toolbar -->
 	<div class="grid grid-cols-3 gap-2 px-1">
 		<button
 			type="button"
 			class="flex flex-col items-center gap-1.5 rounded-lg py-2 text-[#6b7788] active:bg-white/80 disabled:opacity-35"
-			disabled={undoStack.length === 0 || paused}
+			disabled={undoStack.length === 0}
 			onclick={() => undo()}
 		>
 			<svg class="h-7 w-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">
@@ -315,7 +225,7 @@
 		<button
 			type="button"
 			class="flex flex-col items-center gap-1.5 rounded-lg py-2 text-[#6b7788] active:bg-white/80 disabled:opacity-35"
-			disabled={paused || selected === null || givens[selected]}
+			disabled={selected === null || givens[selected]}
 			onclick={() => eraseSelection()}
 		>
 			<svg class="h-7 w-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">
@@ -355,44 +265,15 @@
 		</button>
 	</div>
 
-	<!-- Number row -->
 	<div class="flex flex-nowrap items-end justify-between gap-1 px-0.5 pt-1">
 		{#each Array.from({ length: 9 }, (_, k) => k + 1) as digit (digit)}
 			<button
 				type="button"
-				class="min-w-0 flex-1 pb-1 text-center text-[clamp(1.35rem,6.5vw,1.85rem)] font-bold leading-none text-[#2f6fde] active:opacity-70 disabled:opacity-30"
-				disabled={paused}
+				class="min-w-0 flex-1 pb-1 text-center text-[clamp(1.35rem,6.5vw,1.85rem)] font-bold leading-none text-[#2f6fde] active:opacity-70"
 				onclick={() => applyDigit(digit)}
 			>
 				{digit}
 			</button>
 		{/each}
-	</div>
-
-	<!-- Compact settings -->
-	<div class="mt-auto flex flex-wrap items-center justify-center gap-3 border-t border-[#e8ecf1] pt-4 text-xs text-[#6b7788]">
-		<div class="inline-flex rounded-full border border-[#d0d7e0] bg-white p-0.5" role="group" aria-label="Difficulty">
-			{#each ['easy', 'medium', 'hard'] as d (d)}
-				<button
-					type="button"
-					class="rounded-full px-2.5 py-1 capitalize {difficulty === d
-						? 'bg-[#e8f1fb] font-semibold text-[#1e3a5f]'
-						: ''}"
-					onclick={() => {
-						difficulty = d as Difficulty;
-						startGame();
-					}}
-				>
-					{d}
-				</button>
-			{/each}
-		</div>
-		<button
-			type="button"
-			class="font-semibold text-[#2f6fde] underline-offset-2 hover:underline"
-			onclick={() => startGame()}
-		>
-			New game
-		</button>
 	</div>
 </div>
