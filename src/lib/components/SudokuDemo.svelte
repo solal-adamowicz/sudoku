@@ -113,10 +113,19 @@
 		const row = Math.floor(index / 9);
 		const col = index % 9;
 		const isSel = selected === index;
-		const peer = selected !== null && !isSel && sameUnit(selected, index);
+		const anchorValue =
+			selected !== null && values[selected] !== 0 ? values[selected] : null;
+		const sameValueElsewhere =
+			anchorValue !== null &&
+			!isSel &&
+			values[index] !== 0 &&
+			values[index] === anchorValue;
+		const peer =
+			selected !== null && !isSel && !sameValueElsewhere && sameUnit(selected, index);
 		let bg = 'bg-white';
 		if (conflicts[index]) bg = 'bg-rose-100';
 		else if (isSel) bg = 'bg-[#b9d4f1]';
+		else if (sameValueElsewhere) bg = 'bg-[#cfe8f5]';
 		else if (peer) bg = 'bg-[#e8f1fb]';
 
 		const parts = [
