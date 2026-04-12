@@ -1,0 +1,10 @@
+@import 'tailwindcss';
+
+@layer base {
+	html {
+		-webkit-tap-highlight-color: transparent;
+	}
+	body {
+		@apply min-h-dvh bg-slate-100 antialiased dark:bg-slate-950;
+	}
+}
