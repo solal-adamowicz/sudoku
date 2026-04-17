@@ -1,5 +1,10 @@
 export type { Difficulty } from './types';
-export { DIFFICULTY_TARGET_GIVENS, INDEX } from './types';
+export {
+	DIFFICULTY_LABEL,
+	DIFFICULTY_ORDER,
+	DIFFICULTY_TARGET_GIVENS,
+	INDEX
+} from './types';
 export { generatePuzzle } from './generator';
 export { computeConflictCells, isSolved } from './conflicts';
 export { hasNote, toggleNote, noteCount, pruneNotes } from './notes';

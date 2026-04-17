@@ -1,9 +1,22 @@
-export type Difficulty = 'easy' | 'medium' | 'hard';
+export type Difficulty = 'beginner' | 'easy' | 'medium' | 'hard' | 'expert';
 
+/** Target filled cells after generation (more givens = easier). */
 export const DIFFICULTY_TARGET_GIVENS: Record<Difficulty, number> = {
-	easy: 40,
+	beginner: 42,
+	easy: 38,
 	medium: 32,
-	hard: 26
+	hard: 28,
+	expert: 24
+};
+
+export const DIFFICULTY_ORDER: Difficulty[] = ['beginner', 'easy', 'medium', 'hard', 'expert'];
+
+export const DIFFICULTY_LABEL: Record<Difficulty, string> = {
+	beginner: 'Beginner',
+	easy: 'Easy',
+	medium: 'Medium',
+	hard: 'Hard',
+	expert: 'Expert'
 };
 
 export const INDEX = {

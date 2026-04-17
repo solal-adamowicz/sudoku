@@ -3,7 +3,7 @@
 	import { generatePuzzle } from '$lib/sudoku/generator';
 	import { computeConflictCells } from '$lib/sudoku/conflicts';
 	import { hasNote, toggleNote, pruneNotes } from '$lib/sudoku/notes';
-	import type { Difficulty } from '$lib/sudoku/types';
+	import { DIFFICULTY_LABEL, DIFFICULTY_ORDER, type Difficulty } from '$lib/sudoku/types';
 
 	let difficulty = $state<Difficulty>('medium');
 	let givens = $state<boolean[]>(new Array(81).fill(false));
@@ -214,12 +214,12 @@
 		: ''}"
 	aria-busy={!ready}
 >
-	<header class="flex flex-wrap items-center justify-between gap-2">
-		<div class="flex items-center gap-1.5">
-			<h1 class="text-lg font-semibold tracking-tight text-stone-900 dark:text-stone-50">RosaGrid</h1>
+	<header class="flex items-center justify-between gap-2">
+		<div class="flex min-w-0 items-center gap-1">
+			<h1 class="truncate text-lg font-semibold tracking-tight text-stone-900 dark:text-stone-50">RosaGrid</h1>
 			<button
 				type="button"
-				class="rounded-lg p-2 text-stone-500 transition hover:bg-rose-100/80 hover:text-rose-700 dark:text-stone-400 dark:hover:bg-stone-800 dark:hover:text-rose-300"
+				class="shrink-0 rounded-lg p-1.5 text-stone-500 transition hover:bg-rose-100/80 hover:text-rose-700 dark:text-stone-400 dark:hover:bg-stone-800 dark:hover:text-rose-300"
 				onclick={() => toggleTheme()}
 				aria-label="Toggle dark mode"
 				title="Toggle dark mode"
@@ -244,29 +244,32 @@
 				</span>
 			</button>
 		</div>
-		<div
-			class="inline-flex rounded-full border border-stone-200 bg-white p-0.5 text-xs dark:border-stone-700 dark:bg-stone-900"
-			role="group"
-			aria-label="Difficulty"
-		>
-			{#each ['easy', 'medium', 'hard'] as d (d)}
-				<button
-					type="button"
-					class="rounded-full px-2.5 py-1 capitalize {difficulty === d
-						? 'bg-rose-100 font-semibold text-rose-950 dark:bg-rose-900/50 dark:text-rose-50'
-						: 'text-stone-500 dark:text-stone-400'}"
-					onclick={() => {
-						difficulty = d as Difficulty;
-						startGame();
-					}}
-				>
-					{d}
-				</button>
-			{/each}
+
+		<div class="relative shrink-0">
+			<select
+				id="difficulty-select"
+				aria-label="Difficulty"
+				class="cursor-pointer appearance-none rounded-md bg-transparent py-1 pl-1 pr-5 text-xs font-medium text-stone-500 outline-none hover:text-stone-700 focus-visible:ring-2 focus-visible:ring-rose-400/40 dark:text-stone-400 dark:hover:text-stone-200 dark:focus-visible:ring-rose-500/30"
+				bind:value={difficulty}
+				onchange={() => startGame()}
+			>
+				{#each DIFFICULTY_ORDER as d (d)}
+					<option value={d}>{DIFFICULTY_LABEL[d]}</option>
+				{/each}
+			</select>
+			<span
+				class="pointer-events-none absolute right-0 top-1/2 -translate-y-1/2 text-stone-400 dark:text-stone-500"
+				aria-hidden="true"
+			>
+				<svg class="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+					<path stroke-linecap="round" stroke-linejoin="round" d="m19 9-7 7-7-7" />
+				</svg>
+			</span>
 		</div>
+
 		<button
 			type="button"
-			class="text-sm font-semibold text-rose-600 underline-offset-2 hover:underline dark:text-rose-400"
+			class="shrink-0 text-sm font-semibold text-rose-600 underline-offset-2 hover:underline dark:text-rose-400"
 			onclick={() => startGame()}
 		>
 			New game
