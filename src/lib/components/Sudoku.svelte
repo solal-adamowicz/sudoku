@@ -66,6 +66,21 @@
 		solvedModalDismissed = false;
 	}
 
+	function applyTheme(mode: 'light' | 'dark'): void {
+		if (typeof document === 'undefined') return;
+		document.documentElement.classList.toggle('dark', mode === 'dark');
+		try {
+			localStorage.setItem('theme', mode);
+		} catch {
+			/* ignore */
+		}
+	}
+
+	function toggleTheme(): void {
+		const next = document.documentElement.classList.contains('dark') ? 'light' : 'dark';
+		applyTheme(next);
+	}
+
 	onMount(() => {
 		startGame();
 		ready = true;
@@ -142,16 +157,16 @@
 			values[index] === anchorValue;
 		const peer =
 			selected !== null && !isSel && !sameValueElsewhere && sameUnit(selected, index);
-		let bg = 'bg-white';
-		if (conflicts[index]) bg = 'bg-rose-100';
-		else if (isSel) bg = 'bg-[#b9d4f1]';
-		else if (sameValueElsewhere) bg = 'bg-[#cfe8f5]';
-		else if (peer) bg = 'bg-[#e8f1fb]';
+		let bg = 'bg-white dark:bg-stone-900';
+		if (conflicts[index]) bg = 'bg-rose-100 dark:bg-rose-950/65';
+		else if (isSel) bg = 'bg-rose-100 dark:bg-rose-900/50';
+		else if (sameValueElsewhere) bg = 'bg-rose-50 dark:bg-rose-950/40';
+		else if (peer) bg = 'bg-rose-50/95 dark:bg-stone-800/85';
 
 		const parts = [
-			'relative flex min-h-0 min-w-0 items-center justify-center border-[#c5ced9] select-none border-r border-b [border-width:0.5px]',
-			col % 3 === 2 ? 'border-r-[2.5px] border-r-[#5a6573]' : '',
-			row % 3 === 2 ? 'border-b-[2.5px] border-b-[#5a6573]' : '',
+			'relative flex min-h-0 min-w-0 items-center justify-center border-stone-300 dark:border-stone-600 select-none border-r border-b [border-width:0.5px]',
+			col % 3 === 2 ? 'border-r-[2.5px] border-r-stone-600 dark:border-r-stone-400' : '',
+			row % 3 === 2 ? 'border-b-[2.5px] border-b-stone-600 dark:border-b-stone-400' : '',
 			bg
 		];
 		return parts.filter(Boolean).join(' ');
@@ -166,20 +181,52 @@
 <svelte:window onkeydown={onWindowKeydown} />
 
 <div
-	class="mx-auto flex min-h-dvh max-w-md flex-col gap-4 bg-[#fafbfc] px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-[max(0.75rem,env(safe-area-inset-top))] text-[#2c3d4f] {!ready
+	class="mx-auto flex min-h-dvh max-w-md flex-col gap-4 bg-[#faf8f6] px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-[max(0.75rem,env(safe-area-inset-top))] text-stone-800 dark:bg-stone-950 dark:text-stone-100 {!ready
 		? 'pointer-events-none opacity-50'
 		: ''}"
 	aria-busy={!ready}
 >
 	<header class="flex flex-wrap items-center justify-between gap-2">
-		<h1 class="text-lg font-semibold tracking-tight text-[#1e3a5f]">Sudoku</h1>
-		<div class="inline-flex rounded-full border border-[#d0d7e0] bg-white p-0.5 text-xs" role="group" aria-label="Difficulty">
+		<div class="flex items-center gap-1.5">
+			<h1 class="text-lg font-semibold tracking-tight text-stone-900 dark:text-stone-50">RosaGrid</h1>
+			<button
+				type="button"
+				class="rounded-lg p-2 text-stone-500 transition hover:bg-rose-100/80 hover:text-rose-700 dark:text-stone-400 dark:hover:bg-stone-800 dark:hover:text-rose-300"
+				onclick={() => toggleTheme()}
+				aria-label="Toggle dark mode"
+				title="Toggle dark mode"
+			>
+				<span class="hidden dark:inline" aria-hidden="true">
+					<svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
+						<path
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"
+						/>
+					</svg>
+				</span>
+				<span class="inline dark:hidden" aria-hidden="true">
+					<svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
+						<path
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"
+						/>
+					</svg>
+				</span>
+			</button>
+		</div>
+		<div
+			class="inline-flex rounded-full border border-stone-200 bg-white p-0.5 text-xs dark:border-stone-700 dark:bg-stone-900"
+			role="group"
+			aria-label="Difficulty"
+		>
 			{#each ['easy', 'medium', 'hard'] as d (d)}
 				<button
 					type="button"
 					class="rounded-full px-2.5 py-1 capitalize {difficulty === d
-						? 'bg-[#e8f1fb] font-semibold text-[#1e3a5f]'
-						: 'text-[#6b7788]'}"
+						? 'bg-rose-100 font-semibold text-rose-950 dark:bg-rose-900/50 dark:text-rose-50'
+						: 'text-stone-500 dark:text-stone-400'}"
 					onclick={() => {
 						difficulty = d as Difficulty;
 						startGame();
@@ -191,7 +238,7 @@
 		</div>
 		<button
 			type="button"
-			class="text-sm font-semibold text-[#2f6fde] underline-offset-2 hover:underline"
+			class="text-sm font-semibold text-rose-600 underline-offset-2 hover:underline dark:text-rose-400"
 			onclick={() => startGame()}
 		>
 			New game
@@ -199,15 +246,17 @@
 	</header>
 
 	<div class="mx-auto w-full max-w-[min(100%,400px)]">
-		<div class="aspect-square w-full overflow-hidden rounded-md border-2 border-[#5a6573] bg-white shadow-sm">
+		<div
+			class="aspect-square w-full overflow-hidden rounded-md border-2 border-stone-600 bg-white shadow-sm dark:border-stone-500 dark:bg-stone-900"
+		>
 			<div class="grid h-full w-full grid-cols-9 grid-rows-9">
 				{#each values as _, index (index)}
 					<button type="button" class={cellClass(index)} onclick={() => onCellTap(index)}>
 						{#if values[index] !== 0}
 							<span
 								class="text-[clamp(1.05rem,5.8vw,1.45rem)] font-semibold tabular-nums {givens[index]
-									? 'text-[#1e3a5f]'
-									: 'text-[#2f6fde]'}"
+									? 'text-stone-800 dark:text-stone-100'
+									: 'text-rose-600 dark:text-rose-400'}"
 							>
 								{values[index]}
 							</span>
@@ -215,7 +264,7 @@
 							<span class="grid h-[82%] w-[82%] grid-cols-3 grid-rows-3 gap-px p-0.5">
 								{#each Array.from({ length: 9 }, (_, k) => k + 1) as digit (digit)}
 									<span
-										class="flex items-center justify-center text-[clamp(7px,2.3vw,9px)] font-semibold leading-none text-[#5a6b82] {hasNote(
+										class="flex items-center justify-center text-[clamp(7px,2.3vw,9px)] font-semibold leading-none text-stone-500 dark:text-stone-400 {hasNote(
 											notes[index],
 											digit
 										)
@@ -236,7 +285,7 @@
 	<div class="grid grid-cols-3 gap-2 px-1">
 		<button
 			type="button"
-			class="flex flex-col items-center gap-1.5 rounded-lg py-2 text-[#6b7788] active:bg-white/80 disabled:opacity-35"
+			class="flex flex-col items-center gap-1.5 rounded-lg py-2 text-stone-500 active:bg-rose-100/60 disabled:opacity-35 dark:text-stone-400 dark:active:bg-stone-800/80"
 			disabled={undoStack.length === 0}
 			onclick={() => undo()}
 		>
@@ -251,7 +300,7 @@
 		</button>
 		<button
 			type="button"
-			class="flex flex-col items-center gap-1.5 rounded-lg py-2 text-[#6b7788] active:bg-white/80 disabled:opacity-35"
+			class="flex flex-col items-center gap-1.5 rounded-lg py-2 text-stone-500 active:bg-rose-100/60 disabled:opacity-35 dark:text-stone-400 dark:active:bg-stone-800/80"
 			disabled={selected === null || givens[selected]}
 			onclick={() => eraseSelection()}
 		>
@@ -267,7 +316,7 @@
 		</button>
 		<button
 			type="button"
-			class="flex flex-col items-center gap-1.5 rounded-lg py-2 text-[#6b7788] active:bg-white/80"
+			class="flex flex-col items-center gap-1.5 rounded-lg py-2 text-stone-500 active:bg-rose-100/60 dark:text-stone-400 dark:active:bg-stone-800/80"
 			aria-pressed={notesMode}
 			aria-label={notesMode ? 'Notes on' : 'Notes off'}
 			onclick={() => (notesMode = !notesMode)}
@@ -281,8 +330,8 @@
 					/>
 				</svg>
 				<span
-					class="absolute -right-1 -top-1 rounded-full bg-[#8b95a5] px-1 py-px text-[0.55rem] font-bold leading-none text-white {notesMode
-						? 'bg-[#2f6fde]'
+					class="absolute -right-1 -top-1 rounded-full bg-stone-400 px-1 py-px text-[0.55rem] font-bold leading-none text-white {notesMode
+						? 'bg-rose-600 dark:bg-rose-500'
 						: ''}"
 				>
 					{notesMode ? 'ON' : 'OFF'}
@@ -299,8 +348,8 @@
 				type="button"
 				disabled={saturated}
 				class="min-w-0 flex-1 pb-1 text-center text-[clamp(1.35rem,6.5vw,1.85rem)] font-bold leading-none {saturated
-					? 'cursor-default text-[#b8c0cc]'
-					: 'text-[#2f6fde] active:opacity-70'}"
+					? 'cursor-default text-stone-300 dark:text-stone-600'
+					: 'text-rose-600 active:opacity-70 dark:text-rose-400'}"
 				aria-label={saturated ? `${digit}, all placed` : `Enter ${digit}`}
 				onclick={() => applyDigit(digit)}
 			>
@@ -318,25 +367,27 @@
 			}}
 		>
 			<div
-				class="w-full max-w-sm rounded-2xl border border-[#d0d7e0] bg-white p-6 shadow-xl"
+				class="w-full max-w-sm rounded-2xl border border-stone-200 bg-white p-6 shadow-xl dark:border-stone-700 dark:bg-stone-900"
 				role="dialog"
 				aria-modal="true"
 				aria-labelledby="solved-title"
 				tabindex="-1"
 			>
-				<h2 id="solved-title" class="text-center text-xl font-semibold text-[#1e3a5f]">Puzzle solved</h2>
-				<p class="mt-2 text-center text-sm text-[#6b7788]">Start a new game?</p>
+				<h2 id="solved-title" class="text-center text-xl font-semibold text-stone-900 dark:text-stone-50">
+					Puzzle solved
+				</h2>
+				<p class="mt-2 text-center text-sm text-stone-500 dark:text-stone-400">Start a new game?</p>
 				<div class="mt-6 flex flex-col gap-2">
 					<button
 						type="button"
-						class="w-full rounded-xl bg-[#2f6fde] py-3 text-sm font-semibold text-white active:opacity-90"
+						class="w-full rounded-xl bg-rose-600 py-3 text-sm font-semibold text-white active:opacity-90 dark:bg-rose-500"
 						onclick={() => startGame()}
 					>
 						New game
 					</button>
 					<button
 						type="button"
-						class="w-full rounded-xl border border-[#d0d7e0] bg-[#fafbfc] py-3 text-sm font-medium text-[#2c3d4f] active:bg-[#eef1f4]"
+						class="w-full rounded-xl border border-stone-200 bg-[#faf8f6] py-3 text-sm font-medium text-stone-800 active:bg-rose-100/80 dark:border-stone-600 dark:bg-stone-800 dark:text-stone-100 dark:active:bg-stone-700"
 						onclick={() => (solvedModalDismissed = true)}
 					>
 						Not now
