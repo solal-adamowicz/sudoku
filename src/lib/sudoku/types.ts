@@ -12,11 +12,11 @@ export const DIFFICULTY_TARGET_GIVENS: Record<Difficulty, number> = {
 export const DIFFICULTY_ORDER: Difficulty[] = ['beginner', 'easy', 'medium', 'hard', 'expert'];
 
 export const DIFFICULTY_LABEL: Record<Difficulty, string> = {
-	beginner: 'Beginner',
-	easy: 'Easy',
-	medium: 'Medium',
-	hard: 'Hard',
-	expert: 'Expert'
+	beginner: 'Je me réveille',
+	easy: 'Moyen',
+	medium: 'Difficile',
+	hard: 'Ouf!',
+	expert: 'Aïe Aïe Aïe'
 };
 
 export const INDEX = {

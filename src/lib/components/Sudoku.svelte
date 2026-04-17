@@ -216,13 +216,13 @@
 >
 	<header class="flex items-center justify-between gap-2">
 		<div class="flex min-w-0 items-center gap-1">
-			<h1 class="truncate text-lg font-semibold tracking-tight text-stone-900 dark:text-stone-50">RosaGrid</h1>
+			<h1 class="truncate text-lg font-semibold tracking-tight text-stone-900 dark:text-stone-50">RosaGrid :)</h1>
 			<button
 				type="button"
 				class="shrink-0 rounded-lg p-1.5 text-stone-500 transition hover:bg-rose-100/80 hover:text-rose-700 dark:text-stone-400 dark:hover:bg-stone-800 dark:hover:text-rose-300"
 				onclick={() => toggleTheme()}
-				aria-label="Toggle dark mode"
-				title="Toggle dark mode"
+				aria-label="Basculer le thème clair ou sombre"
+				title="Clair/sombre"
 			>
 				<span class="hidden dark:inline" aria-hidden="true">
 					<svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
@@ -248,7 +248,7 @@
 		<div class="relative shrink-0">
 			<select
 				id="difficulty-select"
-				aria-label="Difficulty"
+				aria-label="Difficulté"
 				class="cursor-pointer appearance-none rounded-md bg-transparent py-1 pl-1 pr-5 text-xs font-medium text-stone-500 outline-none hover:text-stone-700 focus-visible:ring-2 focus-visible:ring-rose-400/40 dark:text-stone-400 dark:hover:text-stone-200 dark:focus-visible:ring-rose-500/30"
 				bind:value={difficulty}
 				onchange={() => startGame()}
@@ -272,14 +272,14 @@
 			class="shrink-0 text-sm font-semibold text-rose-600 underline-offset-2 hover:underline dark:text-rose-400"
 			onclick={() => startGame()}
 		>
-			New game
+			Nouvelle partie
 		</button>
 	</header>
 
 	<p
 		class="text-center text-sm font-medium tabular-nums tracking-wide text-stone-500 dark:text-stone-400"
 		aria-live="polite"
-		aria-label={`Elapsed time ${formatElapsed(elapsedSeconds)}`}
+		aria-label={`En seulement ${formatElapsed(elapsedSeconds)} !`}
 	>
 		{formatElapsed(elapsedSeconds)}
 	</p>
@@ -324,7 +324,8 @@
 	<div class="grid grid-cols-3 gap-2 px-1">
 		<button
 			type="button"
-			class="flex flex-col items-center gap-1.5 rounded-lg py-2 text-stone-500 active:bg-rose-100/60 disabled:opacity-35 dark:text-stone-400 dark:active:bg-stone-800/80"
+			class="flex items-center justify-center rounded-lg py-3 text-stone-500 active:bg-rose-100/60 disabled:opacity-35 dark:text-stone-400 dark:active:bg-stone-800/80"
+			aria-label="Annuler"
 			disabled={undoStack.length === 0}
 			onclick={() => undo()}
 		>
@@ -335,11 +336,11 @@
 					d="M9 15 3 9m0 0 6-6M3 9h12a6 6 0 0 1 0 12h-3"
 				/>
 			</svg>
-			<span class="text-[0.68rem] font-medium">Undo</span>
 		</button>
 		<button
 			type="button"
-			class="flex flex-col items-center gap-1.5 rounded-lg py-2 text-stone-500 active:bg-rose-100/60 disabled:opacity-35 dark:text-stone-400 dark:active:bg-stone-800/80"
+			class="flex items-center justify-center rounded-lg py-3 text-stone-500 active:bg-rose-100/60 disabled:opacity-35 dark:text-stone-400 dark:active:bg-stone-800/80"
+			aria-label="Effacer"
 			disabled={selected === null || givens[selected]}
 			onclick={() => eraseSelection()}
 		>
@@ -347,17 +348,16 @@
 				<path
 					stroke-linecap="round"
 					stroke-linejoin="round"
-					d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Z"
+					d="m7 21-4.3-4.3c-1-1-1-2.5 0-3.4l9.6-9.6c1-1 2.5-1 3.4 0l5.6 5.6c1 1 1 2.5 0 3.4L13 21"
 				/>
-				<path stroke-linecap="round" stroke-linejoin="round" d="m19.5 7.125-3 3M6 18l3-3" />
+				<path stroke-linecap="round" stroke-linejoin="round" d="M22 21H7" />
 			</svg>
-			<span class="text-[0.68rem] font-medium">Erase</span>
 		</button>
 		<button
 			type="button"
-			class="flex flex-col items-center gap-1.5 rounded-lg py-2 text-stone-500 active:bg-rose-100/60 dark:text-stone-400 dark:active:bg-stone-800/80"
+			class="flex items-center justify-center rounded-lg py-3 text-stone-500 active:bg-rose-100/60 dark:text-stone-400 dark:active:bg-stone-800/80"
 			aria-pressed={notesMode}
-			aria-label={notesMode ? 'Notes on' : 'Notes off'}
+			aria-label={notesMode ? 'Mode notes activé' : 'Mode notes désactivé'}
 			onclick={() => (notesMode = !notesMode)}
 		>
 			<div class="relative flex h-7 w-7 items-center justify-center">
@@ -372,15 +372,15 @@
 					class="absolute -right-1 -top-1 rounded-full bg-stone-400 px-1 py-px text-[0.55rem] font-bold leading-none text-white {notesMode
 						? 'bg-rose-600 dark:bg-rose-500'
 						: ''}"
+					aria-hidden="true"
 				>
-					{notesMode ? 'ON' : 'OFF'}
+					{notesMode ? '✓' : '·'}
 				</span>
 			</div>
-			<span class="text-[0.68rem] font-medium">Notes</span>
 		</button>
 	</div>
 
-	<div class="flex flex-nowrap items-end justify-between gap-1 px-0.5 pt-1" role="group" aria-label="Enter digit">
+	<div class="flex flex-nowrap items-end justify-between gap-1 px-0.5 pt-1" role="group" aria-label="Saisir un chiffre">
 		{#each Array.from({ length: 9 }, (_, k) => k + 1) as digit (digit)}
 			{@const saturated = digitSaturated(digit)}
 			<button
@@ -389,7 +389,7 @@
 				class="min-w-0 flex-1 pb-1 text-center text-[clamp(1.35rem,6.5vw,1.85rem)] font-bold leading-none {saturated
 					? 'cursor-default text-stone-300 dark:text-stone-600'
 					: 'text-rose-600 active:opacity-70 dark:text-rose-400'}"
-				aria-label={saturated ? `${digit}, all placed` : `Enter ${digit}`}
+				aria-label={saturated ? `${digit}, tous placés` : `Saisir ${digit}`}
 				onclick={() => applyDigit(digit)}
 			>
 				{digit}
@@ -413,26 +413,26 @@
 				tabindex="-1"
 			>
 				<h2 id="solved-title" class="text-center text-xl font-semibold text-stone-900 dark:text-stone-50">
-					Puzzle solved
+					C'est gagné !
 				</h2>
 				<p class="mt-1 text-center text-sm font-medium tabular-nums text-rose-600 dark:text-rose-400">
 					{formatElapsed(elapsedSeconds)}
 				</p>
-				<p class="mt-2 text-center text-sm text-stone-500 dark:text-stone-400">Start a new game?</p>
+				<p class="mt-2 text-center text-sm text-stone-500 dark:text-stone-400">Nouvelle partie ?</p>
 				<div class="mt-6 flex flex-col gap-2">
 					<button
 						type="button"
 						class="w-full rounded-xl bg-rose-600 py-3 text-sm font-semibold text-white active:opacity-90 dark:bg-rose-500"
 						onclick={() => startGame()}
 					>
-						New game
+						Nouvelle partie
 					</button>
 					<button
 						type="button"
 						class="w-full rounded-xl border border-stone-200 bg-[#faf8f6] py-3 text-sm font-medium text-stone-800 active:bg-rose-100/80 dark:border-stone-600 dark:bg-stone-800 dark:text-stone-100 dark:active:bg-stone-700"
 						onclick={() => (solvedModalDismissed = true)}
 					>
-						Not now
+						Plus tard
 					</button>
 				</div>
 			</div>
