@@ -14,6 +14,10 @@
 	let ready = $state(false);
 	let solvedModalDismissed = $state(false);
 
+	let gameStartMs = $state(0);
+	let solveTimeMs = $state<number | null>(null);
+	let timerTick = $state(0);
+
 	type Snap = { values: number[]; notes: number[] };
 	let undoStack = $state<Snap[]>([]);
 	const UNDO_MAX = 80;
@@ -33,6 +37,12 @@
 
 	const showSolvedModal = $derived(solved && !solvedModalDismissed);
 
+	const elapsedSeconds = $derived.by(() => {
+		timerTick;
+		const end = solveTimeMs ?? Date.now();
+		return Math.max(0, Math.floor((end - gameStartMs) / 1000));
+	});
+
 	function digitSaturated(d: number): boolean {
 		return digitCounts[d] >= 9;
 	}
@@ -40,6 +50,18 @@
 	$effect(() => {
 		if (!solved) solvedModalDismissed = false;
 	});
+
+	$effect(() => {
+		if (solved && solveTimeMs === null) solveTimeMs = Date.now();
+	});
+
+	function formatElapsed(totalSec: number): string {
+		const h = Math.floor(totalSec / 3600);
+		const m = Math.floor((totalSec % 3600) / 60);
+		const s = totalSec % 60;
+		if (h > 0) return `${h}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+		return `${m}:${String(s).padStart(2, '0')}`;
+	}
 
 	function pushUndo(): void {
 		const snap: Snap = { values: values.slice(), notes: notes.slice() };
@@ -64,6 +86,8 @@
 		selected = null;
 		undoStack = [];
 		solvedModalDismissed = false;
+		gameStartMs = Date.now();
+		solveTimeMs = null;
 	}
 
 	function applyTheme(mode: 'light' | 'dark'): void {
@@ -84,6 +108,10 @@
 	onMount(() => {
 		startGame();
 		ready = true;
+		const id = setInterval(() => {
+			timerTick++;
+		}, 1000);
+		return () => clearInterval(id);
 	});
 
 	function onCellTap(i: number): void {
@@ -245,6 +273,14 @@
 		</button>
 	</header>
 
+	<p
+		class="text-center text-sm font-medium tabular-nums tracking-wide text-stone-500 dark:text-stone-400"
+		aria-live="polite"
+		aria-label={`Elapsed time ${formatElapsed(elapsedSeconds)}`}
+	>
+		{formatElapsed(elapsedSeconds)}
+	</p>
+
 	<div class="mx-auto w-full max-w-[min(100%,400px)]">
 		<div
 			class="aspect-square w-full overflow-hidden rounded-md border-2 border-stone-600 bg-white shadow-sm dark:border-stone-500 dark:bg-stone-900"
@@ -376,6 +412,9 @@
 				<h2 id="solved-title" class="text-center text-xl font-semibold text-stone-900 dark:text-stone-50">
 					Puzzle solved
 				</h2>
+				<p class="mt-1 text-center text-sm font-medium tabular-nums text-rose-600 dark:text-rose-400">
+					{formatElapsed(elapsedSeconds)}
+				</p>
 				<p class="mt-2 text-center text-sm text-stone-500 dark:text-stone-400">Start a new game?</p>
 				<div class="mt-6 flex flex-col gap-2">
 					<button
