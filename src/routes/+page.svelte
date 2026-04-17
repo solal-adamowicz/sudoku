@@ -1,5 +1,5 @@
 <script lang="ts">
-	import SudokuDemo from '$lib/components/SudokuDemo.svelte';
+	import Sudoku from '$lib/components/Sudoku.svelte';
 </script>
 
 <svelte:head>
@@ -9,4 +9,4 @@
 	<meta name="theme-color" content="#f8fafc" media="(prefers-color-scheme: light)" />
 </svelte:head>
 
-<SudokuDemo />
+<Sudoku />
