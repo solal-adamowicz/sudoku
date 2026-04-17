@@ -220,82 +220,94 @@
 </script>
 
 <div
-	class="mx-auto flex min-h-dvh max-w-md flex-col gap-4 bg-[#faf8f6] px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-[max(0.75rem,env(safe-area-inset-top))] text-stone-800 dark:bg-stone-950 dark:text-stone-100 {!ready
+	class="mx-auto flex min-h-dvh max-w-md flex-col bg-[#faf8f6] px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-0 text-stone-800 dark:bg-stone-950 dark:text-stone-100 {!ready
 		? 'pointer-events-none opacity-50'
 		: ''}"
 	aria-busy={!ready}
 >
-	<header class="flex items-center justify-between gap-2">
-		<div class="flex min-w-0 items-center gap-1">
-			<h1 class="truncate text-lg font-semibold tracking-tight text-stone-900 dark:text-stone-50">RosaGrid :)</h1>
+	<header
+		class="shrink-0 -mx-4 overflow-hidden border-b border-rose-200/70 bg-gradient-to-b from-rose-100/85 to-[#faf8f6] px-4 pb-3 pt-[max(0.75rem,env(safe-area-inset-top))] shadow-sm shadow-stone-900/5 dark:border-rose-900/35 dark:from-rose-950/45 dark:to-stone-950 dark:shadow-none"
+	>
+		<div class="flex items-center justify-between gap-2">
+			<div class="flex min-w-0 items-center gap-0.5">
+				<h1 class="truncate text-base font-semibold tracking-tight text-stone-900 dark:text-stone-50">
+					RosaGrid :)
+				</h1>
+				<button
+					type="button"
+					class="shrink-0 rounded-lg p-1.5 text-stone-500 transition hover:bg-rose-200/60 hover:text-rose-800 dark:text-stone-400 dark:hover:bg-stone-800/80 dark:hover:text-rose-300"
+					onclick={() => toggleTheme()}
+					aria-label="Basculer le thème clair ou sombre"
+					title="Clair/sombre"
+				>
+					<span class="hidden dark:inline" aria-hidden="true">
+						<svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
+							<path
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"
+							/>
+						</svg>
+					</span>
+					<span class="inline dark:hidden" aria-hidden="true">
+						<svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
+							<path
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"
+							/>
+						</svg>
+					</span>
+				</button>
+			</div>
+			<p
+				class="shrink-0 rounded-lg border border-rose-200/60 bg-white/80 px-2.5 py-1 text-sm font-semibold tabular-nums tracking-tight text-stone-800 dark:border-stone-600 dark:bg-stone-900/60 dark:text-stone-100"
+				aria-live="polite"
+				aria-label={`Temps écoulé : ${formatElapsed(elapsedSeconds)}`}
+			>
+				{formatElapsed(elapsedSeconds)}
+			</p>
+		</div>
+
+		<div
+			class="mt-2.5 flex flex-wrap items-center justify-between gap-x-2 gap-y-1.5 border-t border-rose-200/50 pt-2.5 dark:border-rose-900/40"
+		>
+			<div class="relative min-w-0 flex-1">
+				<label for="difficulty-select" class="sr-only">Difficulté</label>
+				<select
+					id="difficulty-select"
+					aria-label="Difficulté"
+					class="w-full min-w-0 cursor-pointer appearance-none rounded-lg border border-stone-200/90 bg-white/90 py-1.5 pl-2 pr-7 text-xs font-medium text-stone-700 shadow-sm outline-none transition hover:border-stone-300 hover:bg-white focus-visible:ring-2 focus-visible:ring-rose-400/40 dark:border-stone-600 dark:bg-stone-800/80 dark:text-stone-200 dark:hover:border-stone-500 dark:focus-visible:ring-rose-500/30"
+					bind:value={difficulty}
+					onchange={() => startGame()}
+				>
+					{#each DIFFICULTY_ORDER as d (d)}
+						<option value={d}>{DIFFICULTY_LABEL[d]}</option>
+					{/each}
+				</select>
+				<span
+					class="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-stone-400 dark:text-stone-500"
+					aria-hidden="true"
+				>
+					<svg class="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+						<path stroke-linecap="round" stroke-linejoin="round" d="m19 9-7 7-7-7" />
+					</svg>
+				</span>
+			</div>
 			<button
 				type="button"
-				class="shrink-0 rounded-lg p-1.5 text-stone-500 transition hover:bg-rose-100/80 hover:text-rose-700 dark:text-stone-400 dark:hover:bg-stone-800 dark:hover:text-rose-300"
-				onclick={() => toggleTheme()}
-				aria-label="Basculer le thème clair ou sombre"
-				title="Clair/sombre"
+				class="shrink-0 rounded-lg border border-rose-200/90 bg-rose-50/90 px-2.5 py-1.5 text-xs font-semibold text-rose-700 transition hover:bg-rose-100/90 active:scale-[0.98] dark:border-rose-900/50 dark:bg-rose-950/40 dark:text-rose-300 dark:hover:bg-rose-950/70"
+				onclick={() => startGame()}
 			>
-				<span class="hidden dark:inline" aria-hidden="true">
-					<svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
-						<path
-							stroke-linecap="round"
-							stroke-linejoin="round"
-							d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"
-						/>
-					</svg>
-				</span>
-				<span class="inline dark:hidden" aria-hidden="true">
-					<svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
-						<path
-							stroke-linecap="round"
-							stroke-linejoin="round"
-							d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"
-						/>
-					</svg>
-				</span>
+				Nouvelle partie
 			</button>
 		</div>
-
-		<div class="relative shrink-0">
-			<select
-				id="difficulty-select"
-				aria-label="Difficulté"
-				class="cursor-pointer appearance-none rounded-md bg-transparent py-1 pl-1 pr-5 text-xs font-medium text-stone-500 outline-none hover:text-stone-700 focus-visible:ring-2 focus-visible:ring-rose-400/40 dark:text-stone-400 dark:hover:text-stone-200 dark:focus-visible:ring-rose-500/30"
-				bind:value={difficulty}
-				onchange={() => startGame()}
-			>
-				{#each DIFFICULTY_ORDER as d (d)}
-					<option value={d}>{DIFFICULTY_LABEL[d]}</option>
-				{/each}
-			</select>
-			<span
-				class="pointer-events-none absolute right-0 top-1/2 -translate-y-1/2 text-stone-400 dark:text-stone-500"
-				aria-hidden="true"
-			>
-				<svg class="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
-					<path stroke-linecap="round" stroke-linejoin="round" d="m19 9-7 7-7-7" />
-				</svg>
-			</span>
-		</div>
-
-		<button
-			type="button"
-			class="shrink-0 text-sm font-semibold text-rose-600 underline-offset-2 hover:underline dark:text-rose-400"
-			onclick={() => startGame()}
-		>
-			Nouvelle partie
-		</button>
 	</header>
 
-	<p
-		class="text-center text-sm font-medium tabular-nums tracking-wide text-stone-500 dark:text-stone-400"
-		aria-live="polite"
-		aria-label={`En seulement ${formatElapsed(elapsedSeconds)} !`}
+	<main
+		class="flex min-h-0 w-full flex-1 flex-col justify-center gap-3 overflow-y-auto py-5"
 	>
-		{formatElapsed(elapsedSeconds)}
-	</p>
-
-	<div class="mx-auto w-full max-w-[min(100%,400px)]">
+		<div class="mx-auto w-full max-w-[min(100%,400px)]">
 		<div
 			class="aspect-square w-full overflow-hidden rounded-md border-[3px] border-stone-800 bg-white shadow-md ring-1 ring-stone-900/10 dark:border-stone-300 dark:bg-stone-900 dark:ring-white/10"
 		>
@@ -330,9 +342,9 @@
 				{/each}
 			</div>
 		</div>
-	</div>
+		</div>
 
-	<div class="grid grid-cols-3 gap-2 px-1">
+		<div class="grid grid-cols-3 gap-2 px-1">
 		<button
 			type="button"
 			class="flex items-center justify-center rounded-lg py-3 text-stone-500 active:bg-rose-100/60 disabled:opacity-35 dark:text-stone-400 dark:active:bg-stone-800/80"
@@ -389,9 +401,9 @@
 				</span>
 			</div>
 		</button>
-	</div>
+		</div>
 
-	<div class="flex flex-nowrap items-end justify-between gap-1 px-0.5 pt-1" role="group" aria-label="Saisir un chiffre">
+		<div class="flex flex-nowrap items-end justify-between gap-1 px-0.5 pt-1" role="group" aria-label="Saisir un chiffre">
 		{#each Array.from({ length: 9 }, (_, k) => k + 1) as digit (digit)}
 			{@const saturated = digitSaturated(digit)}
 			<button
@@ -406,7 +418,8 @@
 				{digit}
 			</button>
 		{/each}
-	</div>
+		</div>
+	</main>
 
 	{#if showSolvedModal}
 		<div
