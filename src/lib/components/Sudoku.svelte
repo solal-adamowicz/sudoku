@@ -13,6 +13,8 @@
 	let selected = $state<number | null>(null);
 	let ready = $state(false);
 	let solvedModalDismissed = $state(false);
+	let flashCell = $state<number | null>(null);
+	let flashClearTimer: ReturnType<typeof setTimeout> | null = null;
 
 	let gameStartMs = $state(0);
 	let solveTimeMs = $state<number | null>(null);
@@ -111,11 +113,23 @@
 		const id = setInterval(() => {
 			timerTick++;
 		}, 1000);
-		return () => clearInterval(id);
+		return () => {
+			clearInterval(id);
+			if (flashClearTimer !== null) clearTimeout(flashClearTimer);
+		};
 	});
 
 	function onCellTap(i: number): void {
 		selected = i;
+	}
+
+	function triggerCellFlash(i: number): void {
+		flashCell = i;
+		if (flashClearTimer !== null) clearTimeout(flashClearTimer);
+		flashClearTimer = setTimeout(() => {
+			flashCell = null;
+			flashClearTimer = null;
+		}, 100);
 	}
 
 	function applyDigit(d: number): void {
@@ -130,6 +144,7 @@
 			const nextNotes = notes.slice();
 			nextNotes[i] = toggleNote(nextNotes[i], d);
 			notes = nextNotes;
+			triggerCellFlash(i);
 			return;
 		}
 		const v = values.slice();
@@ -138,6 +153,7 @@
 		n[i] = 0;
 		values = v;
 		notes = pruneNotes(values, n);
+		triggerCellFlash(i);
 	}
 
 	function eraseSelection(): void {
@@ -185,6 +201,7 @@
 			values[index] === anchorValue;
 		const peer =
 			selected !== null && !isSel && !sameValueElsewhere && sameUnit(selected, index);
+		const isFlash = flashCell === index;
 		let bg = 'bg-white dark:bg-stone-900';
 		if (conflicts[index]) bg = 'bg-rose-100 dark:bg-rose-950/65';
 		else if (isSel) bg = 'bg-rose-100 dark:bg-rose-900/50';
@@ -192,21 +209,15 @@
 		else if (peer) bg = 'bg-rose-50/95 dark:bg-stone-800/85';
 
 		const parts = [
-			'relative flex min-h-0 min-w-0 items-center justify-center border-stone-300 dark:border-stone-600 select-none border-r border-b [border-width:0.5px]',
-			col % 3 === 2 ? 'border-r-[2.5px] border-r-stone-600 dark:border-r-stone-400' : '',
-			row % 3 === 2 ? 'border-b-[2.5px] border-b-stone-600 dark:border-b-stone-400' : '',
+			'relative z-0 flex min-h-0 min-w-0 items-center justify-center select-none border-r border-b border-stone-400/90 dark:border-stone-500 [border-width:1px] transition-[background-color,box-shadow] duration-75 ease-out',
+			col % 3 === 2 ? 'border-r-[3px] border-r-stone-800 dark:border-r-stone-300' : '',
+			row % 3 === 2 ? 'border-b-[3px] border-b-stone-800 dark:border-b-stone-300' : '',
+			isFlash ? 'z-[1] ring-2 ring-inset ring-rose-400/80 dark:ring-rose-400/55' : '',
 			bg
 		];
 		return parts.filter(Boolean).join(' ');
 	}
-
-	function onWindowKeydown(e: KeyboardEvent): void {
-		if (e.key !== 'Escape') return;
-		if (solved && !solvedModalDismissed) solvedModalDismissed = true;
-	}
 </script>
-
-<svelte:window onkeydown={onWindowKeydown} />
 
 <div
 	class="mx-auto flex min-h-dvh max-w-md flex-col gap-4 bg-[#faf8f6] px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-[max(0.75rem,env(safe-area-inset-top))] text-stone-800 dark:bg-stone-950 dark:text-stone-100 {!ready
@@ -286,7 +297,7 @@
 
 	<div class="mx-auto w-full max-w-[min(100%,400px)]">
 		<div
-			class="aspect-square w-full overflow-hidden rounded-md border-2 border-stone-600 bg-white shadow-sm dark:border-stone-500 dark:bg-stone-900"
+			class="aspect-square w-full overflow-hidden rounded-md border-[3px] border-stone-800 bg-white shadow-md ring-1 ring-stone-900/10 dark:border-stone-300 dark:bg-stone-900 dark:ring-white/10"
 		>
 			<div class="grid h-full w-full grid-cols-9 grid-rows-9">
 				{#each values as _, index (index)}
