@@ -50,12 +50,3 @@ export function computeConflictCells(values: readonly number[]): boolean[] {
 
 	return conflict;
 }
-
-/** Every cell 1–9 and no duplicate in any unit. */
-export function isSolved(values: readonly number[]): boolean {
-	if (values.length !== 81) return false;
-	for (const v of values) {
-		if (v < 1 || v > 9) return false;
-	}
-	return !computeConflictCells(values).some(Boolean);
-}

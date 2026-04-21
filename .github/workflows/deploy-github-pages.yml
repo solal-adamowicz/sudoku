@@ -1,6 +1,4 @@
-# Build static site and deploy to GitHub Pages.
-# Repo Settings → Pages → Source: GitHub Actions.
-name: Deploy to GitHub Pages
+name: Deploy RosaGrid
 
 on:
   push:
@@ -30,14 +28,12 @@ jobs:
 
       - name: Build
         env:
-          # Project site: https://<owner>.github.io/<repo>/
-          # User/org site: repo named <owner>.github.io → served from site root (no base path).
           BASE_PATH: ${{ github.event.repository.name == format('{0}.github.io', github.repository_owner) && '' || format('/{0}', github.event.repository.name) }}
         run: bun run build
 
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: build
+          path: dist
 
   deploy:
     needs: build

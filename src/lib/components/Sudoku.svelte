@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import favicon from '$lib/assets/favicon.svg';
 	import { generatePuzzle } from '$lib/sudoku/generator';
 	import { computeConflictCells } from '$lib/sudoku/conflicts';
 	import { hasNote, toggleNote, pruneNotes } from '$lib/sudoku/notes';
@@ -217,7 +218,22 @@
 		];
 		return parts.filter(Boolean).join(' ');
 	}
+
+	const base = import.meta.env.BASE_URL;
 </script>
+
+<svelte:head>
+	<title>RosaGrid</title>
+	<meta
+		name="description"
+		content="RosaGrid — Le Sudoku pour Rosalie :)"
+	/>
+	<meta name="theme-color" content="#0c0a09" media="(prefers-color-scheme: dark)" />
+	<meta name="theme-color" content="#faf8f6" media="(prefers-color-scheme: light)" />
+	<link rel="icon" href={favicon} />
+	<link rel="manifest" href="{base}manifest.webmanifest" />
+	<link rel="apple-touch-icon" href="{base}icon.svg" />
+</svelte:head>
 
 <div
 	class="mx-auto flex min-h-dvh max-w-md flex-col bg-[#faf8f6] px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-0 text-stone-800 dark:bg-stone-950 dark:text-stone-100 {!ready
@@ -463,3 +479,18 @@
 		</div>
 	{/if}
 </div>
+
+<style global>
+	@import 'tailwindcss';
+
+	@custom-variant dark (&:where(.dark, .dark *));
+
+	@layer base {
+		:global(html) {
+			-webkit-tap-highlight-color: transparent;
+		}
+		:global(body) {
+			@apply min-h-dvh bg-[#faf8f6] text-stone-800 antialiased dark:bg-stone-950 dark:text-stone-100;
+		}
+	}
+</style>
